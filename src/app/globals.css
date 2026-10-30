@@ -7,9 +7,12 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-anek-latin), var(--font-anek-devanagari), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-heading: var(--font-sans);
+  --color-signal: var(--signal);
+  --color-signal-foreground: var(--signal-foreground);
+  --color-live: var(--live);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -46,75 +49,111 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Call status bars while the agent speaks. */
+  --animate-voice-bar: voice-bar 0.7s ease-in-out infinite alternate;
+
+  @keyframes voice-bar {
+    0% {
+      transform: scaleY(0.35);
+    }
+    100% {
+      transform: scaleY(1);
+    }
+  }
+
+  /* Logo keys light up in dialling order when their link is hovered or focused. */
+  --animate-logo-dial: logo-dial 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  @keyframes logo-dial {
+    0% {
+      opacity: 0.2;
+      transform: scale(0.7);
+    }
+    55% {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --background: #fafaf8;
+  --foreground: #16130b;
+  --card: #ffffff;
+  --card-foreground: #16130b;
+  --popover: #ffffff;
+  --popover-foreground: #16130b;
+  --primary: #16130b;
+  --primary-foreground: #ffc800;
+  --secondary: #f1efe8;
+  --secondary-foreground: #16130b;
+  --muted: #f1efe8;
+  --muted-foreground: #5c5647;
+  --accent: #fff3c2;
+  --accent-foreground: #16130b;
+  --destructive: #d92d20;
+  --border: #e6e3da;
+  --input: #e6e3da;
+  --ring: #8a6d00;
+  --signal: #ffc800;
+  --signal-foreground: #16130b;
+  --live: #d92d20;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.375rem;
+  --sidebar: #f5f4ef;
+  --sidebar-foreground: #16130b;
+  --sidebar-primary: #16130b;
+  --sidebar-primary-foreground: #ffc800;
+  --sidebar-accent: #f1efe8;
+  --sidebar-accent-foreground: #16130b;
+  --sidebar-border: #e6e3da;
+  --sidebar-ring: #8a6d00;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
+  --background: #12100a;
+  --foreground: #f4f1e8;
+  --card: #1c1910;
+  --card-foreground: #f4f1e8;
+  --popover: #1c1910;
+  --popover-foreground: #f4f1e8;
+  --primary: #ffc800;
+  --primary-foreground: #16130b;
+  --secondary: #26221a;
+  --secondary-foreground: #f4f1e8;
+  --muted: #26221a;
+  --muted-foreground: #a9a291;
+  --accent: #3a3112;
+  --accent-foreground: #f4f1e8;
+  --destructive: #f04438;
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: #ffc800;
+  --signal: #ffc800;
+  --signal-foreground: #16130b;
+  --live: #f04438;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar: #1c1910;
+  --sidebar-foreground: #f4f1e8;
+  --sidebar-primary: #ffc800;
+  --sidebar-primary-foreground: #16130b;
+  --sidebar-accent: #26221a;
+  --sidebar-accent-foreground: #f4f1e8;
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: #ffc800;
 }
 
 @layer base {
@@ -126,5 +165,19 @@
   }
   html {
     @apply font-sans;
+    scrollbar-color: color-mix(in oklch, var(--foreground) 35%, transparent) transparent;
   }
+  ::selection {
+    background-color: var(--signal);
+    color: var(--signal-foreground);
+  }
+  input,
+  textarea {
+    caret-color: var(--foreground);
+  }
+}
+
+/* Anek's width axis: signboard-style condensed display lettering. */
+@utility font-condensed {
+  font-variation-settings: "wdth" 75;
 }

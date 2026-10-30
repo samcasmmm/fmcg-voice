@@ -42,12 +42,16 @@ Be prepared to demonstrate the application and explain the implementation during
 | Framework | Next.js (App Router, TypeScript, `src/` dir) |
 | Package manager | bun |
 | UI | Tailwind CSS v4 + shadcn/ui (Radix primitives, neutral base color) |
-| Database | PostgreSQL 17 (local): `postgres://postgres:***@localhost:5432/fmcg-voice` |
+| Database | PostgreSQL via `DATABASE_URL` (developed against local Postgres 17, then Neon) |
 | Data access | Drizzle ORM + `pg` (node-postgres), migrations via drizzle-kit |
-| LLM | Vercel AI SDK, with both Google Gemini and Groq configured and the provider chosen by the `AI_PROVIDER` env var |
+| LLM | Vercel AI SDK 7. `AI_PROVIDER=groq` (default, `qwen/qwen3.8-27b`) or `google` (`gemini-2.5-flash`). Summaries on `openai/gpt-oss-20b` |
 | Speech-to-text | Switchable: browser Web Speech API (default) or Groq Whisper |
 | Text-to-speech | Browser `speechSynthesis` |
 | Text fallback | Always available typed input |
 | Locale | India; prices in ₹ INR; fictional FMCG brand; kirana retailers |
 | Languages | English + Hindi (the agent understands and replies in Hindi/Hinglish) |
 | Retailer identification | Optional pre-select from the mock retailer list; otherwise the agent asks for shop name/phone and looks it up |
+| Catalogue | 1 fictional company, 10 SKUs, 5 schemes, 6 retailers |
+| Screens | Start call (turns into the live call in place), history + detail, catalogue |
+| Turn-taking | Hands-free by default, push-to-talk toggle |
+| Call end | End call button, or the agent ends it after the goodbye; LLM summary + outcome saved |
