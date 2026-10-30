@@ -5,14 +5,15 @@
 ```
 Browser (Next.js client)                          Server (Next.js route handlers / server actions)
 ───────────────────────                           ───────────────────────────────────────────────
-Mic ─► Web Speech API ──────┐                     POST /api/transcribe ─► Groq Whisper
-   └─► MediaRecorder + VAD ─┴─► text ─┐
+Mic ─► MediaRecorder + VAD ─┐                     POST /api/transcribe ─► Sarvam Saaras (Whisper fallback)
+   └─► Web Speech API ──────┴─► text ─┐
 Keyboard ─────────────────────────────┤
                                       ▼
                          useChat (AI SDK) ──────► POST /api/chat
                                       ▲              │ load history from Postgres
                                       │              │ streamText(model, instructions, tools)
-         speechSynthesis ◄── reply ◄──┘              │ tools write to Postgres
+  Sarvam Bulbul audio ◄── reply ◄──┘              │ tools write to Postgres
+  (POST /api/speech; browser voice fallback)        │
                                                      ▼ save messages on finish
 Side panel ◄── tool results in the message stream
 
@@ -24,13 +25,13 @@ End call ─► server action ─► generateText(Output.object) ─► summary 
 - Tailwind CSS v4 and shadcn/ui
 - Drizzle ORM on PostgreSQL
 - Vercel AI SDK 7, with Groq and Google providers
+- Sarvam AI for speech-to-text and text-to-speech
 
 ## Key decisions
 
-**The voice runs in the browser, and the model runs on the server.**
-- Speech-to-text defaults to the free Web Speech API.
-- Groq Whisper is the fallback for browsers without it, and gives better accuracy. It records with a simple silence detector (RMS threshold, 1.2s of silence ends the turn).
-- Text-to-speech uses `speechSynthesis`, picking an `en-IN` or `hi-IN` voice. It speaks sentence by sentence to work around Chrome cutting off long utterances, with a timeout in case the "ended" event never fires.
+**Speech runs through Sarvam, with a fallback at each step.**
+- Speech-to-text: the browser records each turn with a simple silence detector (RMS threshold; 1.2s of silence ends the turn) and sends it to `/api/transcribe`. That uses Sarvam Saaras v4, with the product names passed as `keyterms`; in testing it got the invented brand names right where Whisper misheard them. If Sarvam fails, the server retries the same recording with Groq Whisper. Browser speech recognition (Web Speech API) remains an option, and switches to Sarvam automatically if the browser's service is unavailable.
+- Text-to-speech: `/api/speech` returns MP3 from Sarvam Bulbul v4-flash (Simran's sales persona, in English and Hindi). The client requests the first sentence on its own and the rest in parallel, then plays them in order, so speech starts after one sentence's latency. If Sarvam fails or autoplay is blocked, the browser's `speechSynthesis` speaks whatever is left.
 
 **Turn-taking works like a phone call.**
 - Asha speaks first.

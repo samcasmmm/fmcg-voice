@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 
 import { CallExperience } from '@/components/call/call-experience';
 import { Skeleton } from '@/components/ui/skeleton';
+import { sarvamConfigured } from '@/lib/ai/sarvam';
 import { getDisplayCatalogue, getRetailers } from '@/lib/catalogue';
 
 export default function CallPage() {
@@ -16,7 +17,7 @@ export default function CallPage() {
 async function CallLoader() {
   await connection();
   const [retailers, catalogue] = await Promise.all([getRetailers(), getDisplayCatalogue()]);
-  return <CallExperience retailers={retailers} catalogue={catalogue} />;
+  return <CallExperience retailers={retailers} catalogue={catalogue} sarvam={sarvamConfigured()} />;
 }
 
 function SetupSkeleton() {

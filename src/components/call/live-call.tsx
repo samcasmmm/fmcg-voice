@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import type { Language, Retailer } from '@/db/schema';
 import { useInputSupport, useSpeechInput, type InputEngine, type ListenResult } from '@/hooks/use-speech-input';
-import { useSpeechOutput } from '@/hooks/use-speech-output';
+import { unlockAudio, useSpeechOutput, type VoiceEngine } from '@/hooks/use-speech-output';
 import { deriveCaptured, messageText } from '@/lib/agent/captured';
 import type { AgentUIMessage } from '@/lib/agent/tools';
 import type { ProductCardData } from '@/lib/catalogue';
@@ -27,6 +27,8 @@ export type CallSettings = {
   language: Language;
   /** null when this browser cannot capture speech: text-only call. */
   engine: InputEngine | null;
+  /** Sarvam Bulbul, or the browser's own voice. */
+  voice: VoiceEngine;
   handsFree: boolean;
   voiceReplies: boolean;
 };
@@ -118,10 +120,10 @@ export function LiveCall({
     // Browser recognition depends on the vendor's cloud service and language packs; Whisper does not.
     const browserUnavailable =
       using === 'browser' && (result.error === 'network' || result.error === 'language' || result.detail === 'unsupported');
-    if (browserUnavailable && support.whisper) {
-      setEngine('whisper');
-      toast.info('Browser speech recognition isn’t available here, so I switched to Whisper. Please say that again.');
-      return takeTurn('whisper');
+    if (browserUnavailable && support.sarvam) {
+      setEngine('sarvam');
+      toast.info('Browser speech recognition isn’t available here, so I switched to Sarvam. Please say that again.');
+      return takeTurn('sarvam');
     }
     setPhase('idle');
     const message = listenErrorMessage(result);
@@ -143,7 +145,7 @@ export function LiveCall({
     const text = messageText(message);
     if (text && latest.current.voiceReplies && output.supported) {
       setPhase('speaking');
-      await output.speak(text, language);
+      await output.speak(text, language, settings.voice);
       if (myTurn !== turn.current) return;
     }
     if (message.parts.some((part) => part.type === 'tool-endCall')) return finish();
@@ -184,6 +186,7 @@ export function LiveCall({
   }
 
   function onMic() {
+    unlockAudio();
     if (phase === 'listening') return input.stop();
     output.cancel();
     void takeTurn();
@@ -236,6 +239,7 @@ export function LiveCall({
             className='flex items-center gap-2'
             onSubmit={(event) => {
               event.preventDefault();
+              unlockAudio();
               send(draft);
               setDraft('');
             }}
@@ -291,7 +295,7 @@ export function LiveCall({
             )}
             <p className='ml-auto text-muted-foreground'>
               {language === 'hi' ? 'हिन्दी' : 'English'}
-              {engine && ` · ${engine === 'whisper' ? 'Whisper' : 'Browser'} speech`}
+              {engine && ` · ${{ sarvam: 'Sarvam', browser: 'Browser', whisper: 'Whisper' }[engine]} speech`}
             </p>
           </div>
         </footer>

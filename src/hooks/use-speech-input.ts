@@ -27,16 +27,17 @@ function getRecognition(): RecognitionConstructor | null {
 
 const noopSubscribe = () => () => {};
 
-export type InputEngine = 'browser' | 'whisper';
+/** sarvam and whisper record in the browser and transcribe on the server; browser uses the Web Speech API. */
+export type InputEngine = 'sarvam' | 'browser' | 'whisper';
 
 export function useInputSupport() {
   const browser = useSyncExternalStore(noopSubscribe, () => getRecognition() !== null, () => false);
-  const whisper = useSyncExternalStore(
+  const recorder = useSyncExternalStore(
     noopSubscribe,
     () => typeof MediaRecorder !== 'undefined' && !!navigator.mediaDevices?.getUserMedia,
     () => false,
   );
-  return { browser, whisper };
+  return { browser, sarvam: recorder, whisper: recorder } satisfies Record<InputEngine, boolean>;
 }
 
 export type ListenError = 'no-speech' | 'denied' | 'no-mic' | 'network' | 'language' | 'failed';
@@ -73,7 +74,7 @@ const LOCALES: Record<Language, string> = { en: 'en-IN', hi: 'hi-IN' };
 
 /**
  * One-shot listening: resolves with the final transcript when the speaker pauses.
- * `browser` uses the Web Speech API; `whisper` records with silence detection and transcribes on the server.
+ * `browser` uses the Web Speech API; `sarvam` and `whisper` record with silence detection and transcribe on the server.
  * The engine is chosen per turn so a call can fall back to Whisper when browser recognition is unavailable.
  */
 export function useSpeechInput(language: Language) {
@@ -129,7 +130,7 @@ export function useSpeechInput(language: Language) {
     [language],
   );
 
-  const listenWhisper = useCallback(async (): Promise<ListenResult> => {
+  const listenRecorded = useCallback(async (provider: 'sarvam' | 'whisper'): Promise<ListenResult> => {
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
@@ -196,6 +197,7 @@ export function useSpeechInput(language: Language) {
       const form = new FormData();
       form.append('audio', new Blob(chunks, { type: recorder.mimeType }), 'speech.webm');
       form.append('language', language);
+      form.append('provider', provider);
       const res = await fetch('/api/transcribe', { method: 'POST', body: form });
       const data = (await res.json()) as { text?: string; error?: string };
       if (!res.ok) return { error: 'failed', detail: `transcribe ${res.status}: ${data.error ?? 'error'}` };
@@ -208,8 +210,8 @@ export function useSpeechInput(language: Language) {
   }, [language]);
 
   const listen = useCallback(
-    (engine: InputEngine) => (engine === 'whisper' ? listenWhisper() : listenBrowser()),
-    [listenBrowser, listenWhisper],
+    (engine: InputEngine) => (engine === 'browser' ? listenBrowser() : listenRecorded(engine)),
+    [listenBrowser, listenRecorded],
   );
   /** Finish now and use what was heard so far. */
   const stop = useCallback(() => stopRef.current?.(), []);

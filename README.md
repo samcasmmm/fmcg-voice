@@ -2,8 +2,8 @@
 
 A browser-based AI voice agent for FMCG retailer engagement. A kirana retailer talks to **Asha**, the sales assistant of a fictional company (Sahyog Consumer Products). Asha answers questions about products, prices, schemes and stock, captures order enquiries and follow-ups, and saves a summary and outcome when the call ends.
 
-- **Voice in:** browser speech recognition (Web Speech API), or Groq Whisper, switchable. Typing always works as a fallback.
-- **Voice out:** browser text-to-speech.
+- **Voice in:** [Sarvam](https://www.sarvam.ai) Saaras speech-to-text by default, with browser speech recognition and Groq Whisper as alternatives. Typing always works as a fallback.
+- **Voice out:** Sarvam Bulbul text-to-speech (voice: Simran) by default, with the browser's own voice as a fallback.
 - **Product cards:** every product Asha names (answers, suggestions, out-of-stock alternatives, category lists) appears as a card in the chat with its prices, stock and scheme.
 - **Languages:** English and Hindi.
 - **Screens:** start and run a call (`/`), call history (`/history`, `/history/[id]`), and the sample catalogue (`/catalogue`).
@@ -14,8 +14,8 @@ See [docs/approach.md](docs/approach.md) for the technical approach and assumpti
 
 - [Bun](https://bun.sh) 1.3+ and Node.js 22+
 - PostgreSQL 15+ (local or hosted, e.g. Neon)
-- A [Groq API key](https://console.groq.com/keys) (free tier works). A [Google AI Studio key](https://aistudio.google.com/apikey) is optional.
-- Chrome or Edge for browser speech recognition. Other browsers can use the Whisper option or type.
+- A [Groq API key](https://console.groq.com/keys) (free tier works) and a [Sarvam API key](https://dashboard.sarvam.ai) (new accounts get ₹100 of free credits). A [Google AI Studio key](https://aistudio.google.com/apikey) is optional.
+- Any modern browser with a microphone. Browser speech recognition (optional) needs Chrome or Edge.
 
 ## Setup
 
@@ -36,12 +36,16 @@ bun dev                     # http://localhost:3000
 | --- | --- | --- | --- |
 | `DATABASE_URL` | yes | | PostgreSQL connection string |
 | `AI_PROVIDER` | no | `groq` | `groq` or `google` |
-| `GROQ_API_KEY` | yes | | Chat (when `AI_PROVIDER=groq`) and Whisper speech-to-text |
+| `GROQ_API_KEY` | yes | | Chat (when `AI_PROVIDER=groq`) and Whisper speech-to-text fallback |
+| `SARVAM_API_KEY` | recommended | | Speech-to-text and text-to-speech. Without it, the app uses Whisper and the browser voice |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | if `google` | | Gemini |
 | `GROQ_MODEL` | no | `qwen/qwen3.8-27b` | Conversation model |
 | `GROQ_SUMMARY_MODEL` | no | `openai/gpt-oss-20b` | End-of-call summary model |
 | `GROQ_TRANSCRIPTION_MODEL` | no | `whisper-large-v3-turbo` | Whisper model |
 | `GOOGLE_MODEL` | no | `gemini-2.5-flash` | Gemini model |
+| `SARVAM_STT_MODEL` | no | `saaras:v4` | Sarvam speech-to-text model |
+| `SARVAM_TTS_MODEL` | no | `bulbul:v4-flash` | Sarvam text-to-speech model |
+| `SARVAM_SPEAKER_EN` / `SARVAM_SPEAKER_HI` | no | `simran_en_sales` / `simran_hi_sales` | Sarvam voices |
 
 ## Demo script
 
@@ -58,8 +62,8 @@ For Hindi, choose **हिन्दी** or pick a Hindi-speaking retailer (e.g.
 ## Known limits
 
 - **Groq free-tier rate limit:** 8,000 tokens per minute per model. A turn that records something uses two model calls, so a fast-paced call can pause for up to a minute. The UI shows a "taking longer" note when this happens. A paid Groq plan or `AI_PROVIDER=google` avoids it.
-- **Browser speech recognition** uses the browser vendor's cloud service (Chrome, Edge). It needs an internet connection and isn't available in Firefox. Use the Whisper option there.
-- **Hindi quality depends on the model.** Qwen's Hindi is understandable but sometimes picks the wrong word. Text-to-speech voice quality also depends on the voices installed on the device.
+- **Sarvam credits:** speech-to-text costs ₹0.49 per minute and text-to-speech ₹10 per 10,000 characters, so the ₹100 free credit covers plenty of demo calls. When it runs out, the app falls back to Whisper and the browser voice.
+- **Hindi quality depends on the model.** Qwen's Hindi is understandable but sometimes picks the wrong word. The browser-voice fallback depends on the voices installed on the device.
 
 ## Scripts
 

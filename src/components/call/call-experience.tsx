@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type { Language, Retailer } from '@/db/schema';
 import { useInputSupport, type InputEngine } from '@/hooks/use-speech-input';
-import { useSpeechOutputSupported } from '@/hooks/use-speech-output';
+import { unlockAudio, useSpeechOutputSupported, type VoiceEngine } from '@/hooks/use-speech-output';
 import type { AgentUIMessage } from '@/lib/agent/tools';
 import type { ProductCardData } from '@/lib/catalogue';
 
@@ -21,7 +21,16 @@ const UNSELECTED = 'ask';
 
 type Session = { id: string; messages: AgentUIMessage[]; settings: CallSettings; retailer: Retailer | null };
 
-export function CallExperience({ retailers, catalogue }: { retailers: Retailer[]; catalogue: ProductCardData[] }) {
+export function CallExperience({
+  retailers,
+  catalogue,
+  sarvam,
+}: {
+  retailers: Retailer[];
+  catalogue: ProductCardData[];
+  /** Whether the server has a Sarvam API key. */
+  sarvam: boolean;
+}) {
   const [session, setSession] = useState<Session | null>(null);
 
   if (session) {
@@ -36,20 +45,33 @@ export function CallExperience({ retailers, catalogue }: { retailers: Retailer[]
       />
     );
   }
-  return <CallSetup retailers={retailers} onStarted={setSession} />;
+  return <CallSetup retailers={retailers} sarvam={sarvam} onStarted={setSession} />;
 }
 
-function CallSetup({ retailers, onStarted }: { retailers: Retailer[]; onStarted: (session: Session) => void }) {
-  const support = useInputSupport();
-  const speechOut = useSpeechOutputSupported();
+function CallSetup({
+  retailers,
+  sarvam,
+  onStarted,
+}: {
+  retailers: Retailer[];
+  sarvam: boolean;
+  onStarted: (session: Session) => void;
+}) {
+  const recorderSupport = useInputSupport();
+  const support = { ...recorderSupport, sarvam: sarvam && recorderSupport.sarvam };
+  const browserVoice = useSpeechOutputSupported();
   const [retailerId, setRetailerId] = useState(UNSELECTED);
   const [language, setLanguage] = useState<Language>('en');
-  const [engineChoice, setEngineChoice] = useState<InputEngine>('browser');
+  const [engineChoice, setEngineChoice] = useState<InputEngine>('sarvam');
+  const [voiceChoice, setVoiceChoice] = useState<VoiceEngine>('sarvam');
   const [handsFree, setHandsFree] = useState(true);
   const [pending, startTransition] = useTransition();
 
   // Fall back to whichever capture method this browser supports.
-  const engine: InputEngine | null = support[engineChoice] ? engineChoice : support.browser ? 'browser' : support.whisper ? 'whisper' : null;
+  const engine: InputEngine | null = support[engineChoice]
+    ? engineChoice
+    : (['sarvam', 'browser', 'whisper'] as const).find((option) => support[option]) ?? null;
+  const voice: VoiceEngine | null = sarvam ? voiceChoice : browserVoice ? 'browser' : null;
   const retailer = retailers.find((r) => String(r.id) === retailerId) ?? null;
 
   function chooseRetailer(value: string) {
@@ -59,6 +81,8 @@ function CallSetup({ retailers, onStarted }: { retailers: Retailer[]; onStarted:
   }
 
   function start() {
+    // Must run inside the click: lets Asha's greeting play once the call connects.
+    unlockAudio();
     startTransition(async () => {
       try {
         const { id, messages } = await startConversation({ retailerId: retailer?.id ?? null, language });
@@ -66,7 +90,7 @@ function CallSetup({ retailers, onStarted }: { retailers: Retailer[]; onStarted:
           id,
           messages: messages as AgentUIMessage[],
           retailer,
-          settings: { language, engine, handsFree, voiceReplies: speechOut },
+          settings: { language, engine, voice: voice ?? 'browser', handsFree, voiceReplies: voice !== null },
         });
       } catch {
         toast.error('Could not start the call. Check the database connection and try again.');
@@ -133,19 +157,50 @@ function CallSetup({ retailers, onStarted }: { retailers: Retailer[]; onStarted:
             aria-labelledby='engine-label'
             className='w-full'
           >
+            <ToggleGroupItem value='sarvam' className='flex-1' disabled={!support.sarvam}>
+              Sarvam
+            </ToggleGroupItem>
             <ToggleGroupItem value='browser' className='flex-1' disabled={!support.browser}>
               Browser
             </ToggleGroupItem>
             <ToggleGroupItem value='whisper' className='flex-1' disabled={!support.whisper}>
-              Whisper (Groq)
+              Whisper
             </ToggleGroupItem>
           </ToggleGroup>
           <p className='text-sm text-muted-foreground'>
             {engine === null
               ? 'This browser can’t capture speech. You can still type.'
-              : engine === 'browser'
-                ? 'Free and instant. Works best in Chrome or Edge.'
-                : 'Records your voice and transcribes it with Whisper. Works in any modern browser.'}
+              : engine === 'sarvam'
+                ? 'Sarvam Saaras: built for Indian English, Hindi and Hinglish. Falls back to Whisper if unavailable.'
+                : engine === 'browser'
+                  ? 'Free and instant. Works best in Chrome or Edge.'
+                  : 'Groq Whisper transcription. Works in any modern browser.'}
+          </p>
+        </div>
+
+        <div className='flex flex-col gap-2'>
+          <Label id='voice-label'>Asha&rsquo;s voice</Label>
+          <ToggleGroup
+            type='single'
+            variant='outline'
+            value={voice ?? ''}
+            onValueChange={(value) => value && setVoiceChoice(value as VoiceEngine)}
+            aria-labelledby='voice-label'
+            className='w-full'
+          >
+            <ToggleGroupItem value='sarvam' className='flex-1' disabled={!sarvam}>
+              Sarvam (Simran)
+            </ToggleGroupItem>
+            <ToggleGroupItem value='browser' className='flex-1' disabled={!browserVoice}>
+              Browser voice
+            </ToggleGroupItem>
+          </ToggleGroup>
+          <p className='text-sm text-muted-foreground'>
+            {voice === 'sarvam'
+              ? 'Natural Indian voice from Sarvam Bulbul, in English and Hindi. Falls back to the browser voice if unavailable.'
+              : voice === 'browser'
+                ? 'Uses a voice installed on this device; quality varies, especially for Hindi.'
+                : 'This browser can’t play speech. Replies stay on screen.'}
           </p>
         </div>
 
