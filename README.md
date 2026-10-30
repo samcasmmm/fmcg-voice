@@ -8,7 +8,15 @@ A browser-based AI voice agent for FMCG retailer engagement. A kirana retailer t
 - **Languages:** English and Hindi.
 - **Screens:** start and run a call (`/`), call history (`/history`, `/history/[id]`), and the sample catalogue (`/catalogue`).
 
-See [docs/approach.md](docs/approach.md) for the technical approach and assumptions, and [docs/requirements.md](docs/requirements.md) for the brief.
+## Documentation
+
+| Document | For |
+| --- | --- |
+| [docs/details.md](docs/details.md) | Full project documentation: architecture, voice pipeline, agent, data model, screens, testing, limits |
+| [docs/approach.md](docs/approach.md) | Short technical approach and assumptions |
+| [docs/demo-script.md](docs/demo-script.md) | 10-minute talk and live demo script |
+| [docs/interview-prep.md](docs/interview-prep.md) | Code walkthrough, design decisions, likely questions |
+| [docs/requirements.md](docs/requirements.md) | The original brief and project decisions |
 
 ## Requirements
 
