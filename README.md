@@ -16,6 +16,7 @@ A browser-based AI voice agent for FMCG retailer engagement. A kirana retailer t
 | [docs/approach.md](docs/approach.md) | Short technical approach and assumptions |
 | [docs/demo-script.md](docs/demo-script.md) | 10-minute talk and live demo script |
 | [docs/interview-prep.md](docs/interview-prep.md) | Code walkthrough, design decisions, likely questions |
+| [docs/project-story.md](docs/project-story.md) | How to explain the project: why it exists, how it was built, challenges and lessons |
 | [docs/requirements.md](docs/requirements.md) | The original brief and project decisions |
 
 ## Requirements
